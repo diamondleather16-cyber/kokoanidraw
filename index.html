@@ -28,47 +28,67 @@ function initialPairs(){let ps=[];blocks.forEach(bl=>{let s=bl.slots;if(bl.no<=2
 function makeDraw(){
  for(let at=0;at<5000;at++){
   let teams=sh(base.map(([pref,region])=>({pref,origRegion:region,region,name:teamName(pref)}))).map((t,i)=>({...t,pre:i+1}));
-  let groups={};teams.forEach(t=>(groups[t.region]??=[]).push(t));Object.values(groups).forEach(a=>a.sort((x,y)=>x.pre-y.pre));
+  let groups={};
+  teams.forEach(t=>(groups[t.region]??=[]).push(t));
+  Object.values(groups).forEach(a=>a.sort((x,y)=>x.pre-y.pre));
 
-  let hk=(groups.北海道||[]).slice(),targets=Object.keys(groups).filter(r=>r!='北海道'&&r!='関東東京'&&r!='九州'),hkTarget=pick(targets);
+  let hk=(groups.北海道||[]).slice();
+  let targets=Object.keys(groups).filter(r=>r!='北海道'&&r!='関東東京'&&r!='九州');
+  let hkTarget=pick(targets);
   groups[hkTarget]=[...(groups[hkTarget]||[]),...hk.map(t=>({...t,region:hkTarget,realRegion:'北海道'}))];
   delete groups.北海道;
 
-  let rawOrder=sh(Object.keys(groups)),order=adjustOrder(rawOrder);
-  let cap={A:28,B:28},preAssign=[],splitRegion=null,overSide=null,bad=false;
+  let rawOrder=sh(Object.keys(groups));
+  let order=adjustOrder(rawOrder);
 
-  // 地区A/B振分：超過した時点で、その超過側に入っている地区のうち「地区順が一番若い地区」を分割地区にする
+  let cap={A:28,B:28},preAssign=[],splitRegion=null,overSide=null,triggerRegion=null,bad=false;
+
+  // 地区順どおりにA/Bくじを引く。
+  // どちらかがマイナスになった時点でその側を締切。
+  // その側に入っている地区のうち、地区順が一番若い地区を「分割地区」にする。
   for(let idx=0;idx<order.length;idx++){
    let r=order[idx],schools=(groups[r]||[]).slice().sort((a,b)=>a.pre-b.pre),n=schools.length;
    let before={A:cap.A,B:cap.B};
-   let side=cap.A>=cap.B?'A':'B';if(Math.random()<.5)side=side=='A'?'B':'A';
+   let side=cap.A>=cap.B?'A':'B';
+   if(Math.random()<.5)side=side=='A'?'B':'A';
+
    cap[side]-=n;
-   preAssign.push({region:r,side,n,before,after:{A:cap.A,B:cap.B},schools});
+   preAssign.push({region:r,side,n,before,after:{A:cap.A,B:cap.B},schools,trigger:false,forced:false});
+
    if(cap[side]<0){
     overSide=side;
+    triggerRegion=r;
     splitRegion=preAssign.find(x=>x.side==overSide).region;
-    // まだ引いていない地区は反対側に自動決定
+    preAssign[preAssign.length-1].trigger=true;
+
+    // まだ引いていない地区は反対側へ自動決定
     for(let j=idx+1;j<order.length;j++){
-     let rr=order[j],ss=(groups[rr]||[]).slice().sort((a,b)=>a.pre-b.pre),nn=ss.length,fs=overSide=='A'?'B':'A',bef={A:cap.A,B:cap.B};
+     let rr=order[j],ss=(groups[rr]||[]).slice().sort((a,b)=>a.pre-b.pre),nn=ss.length;
+     let fs=overSide=='A'?'B':'A';
+     let bef={A:cap.A,B:cap.B};
      cap[fs]-=nn;
-     preAssign.push({region:rr,side:fs,n:nn,before:bef,after:{A:cap.A,B:cap.B},schools:ss,forced:true});
+     preAssign.push({region:rr,side:fs,n:nn,before:bef,after:{A:cap.A,B:cap.B},schools:ss,trigger:false,forced:true});
     }
     break;
    }
   }
-  // 未処理があれば安全側で補完
+
   for(let r of order){
    if(preAssign.some(x=>x.region==r))continue;
-   let schools=(groups[r]||[]).slice().sort((a,b)=>a.pre-b.pre),n=schools.length,side=cap.A>=cap.B?'A':'B',before={A:cap.A,B:cap.B};
+   let schools=(groups[r]||[]).slice().sort((a,b)=>a.pre-b.pre),n=schools.length;
+   let side=cap.A>=cap.B?'A':'B',before={A:cap.A,B:cap.B};
    cap[side]-=n;
-   preAssign.push({region:r,side,n,before,after:{A:cap.A,B:cap.B},schools,forced:true});
+   preAssign.push({region:r,side,n,before,after:{A:cap.A,B:cap.B},schools,trigger:false,forced:true});
   }
 
-  let plan=[],alloc=[],split=[];
+  let plan=[],alloc=preAssign.slice(),split=[];
+  let splitInfo=null;
+
   if(splitRegion){
    split=[splitRegion];
    let splitAssign=preAssign.find(x=>x.region==splitRegion);
    let splitTeams=splitAssign.schools.slice().sort((a,b)=>a.pre-b.pre);
+
    let countsWithout={A:0,B:0};
    preAssign.forEach(x=>{if(x.region!=splitRegion)countsWithout[x.side]+=x.n});
 
@@ -79,20 +99,19 @@ function makeDraw(){
 
    let tickets=sh([...Array(aNeed).fill('A'),...Array(bNeed).fill('B')]);
    let splitRows=[];
-   splitTeams.forEach((t,i)=>splitRows.push({...t,drawSide:tickets[i],note:splitRegion+' 分割',split:true,cTicket:tickets[i]}));
+   splitTeams.forEach((t,i)=>{
+    splitRows.push({...t,drawSide:tickets[i],note:splitRegion+' 分割',split:true,cTicket:tickets[i]});
+   });
+
+   splitInfo={region:splitRegion,triggerRegion,overSide,aNeed,bNeed,splitRows};
 
    preAssign.forEach(x=>{
-    if(x.region==splitRegion){
-     alloc.push({region:x.region,side:'分割',n:x.n,before:x.before,after:{A:0,B:0},schools:x.schools,split:true,aNeed,bNeed,splitRows});
-    }else{
-     alloc.push(x);
-     x.schools.forEach(t=>plan.push({...t,drawSide:x.side,note:x.region,split:false}));
-    }
+    if(x.region==splitRegion)return;
+    x.schools.forEach(t=>plan.push({...t,drawSide:x.side,note:x.region,split:false}));
    });
    plan.push(...splitRows);
   }else{
    preAssign.forEach(x=>{
-    alloc.push(x);
     x.schools.forEach(t=>plan.push({...t,drawSide:x.side,note:x.region,split:false}));
    });
   }
@@ -102,7 +121,8 @@ function makeDraw(){
   let splitDraws=plan.filter(t=>splitSet.has(t.region)).sort((a,b)=>a.pre-b.pre);
   let restDraws=plan.filter(t=>!splitSet.has(t.region)).sort((a,b)=>a.pre-b.pre);
 
-  // 分割地区はC箱で先に本抽選：C番号を引き、A/Bへ写像する。使った番号は各A/B箱から抜く。
+  // 分割地区はC箱で先に本抽選。
+  // C番号を引き、A/Bくじ結果に応じてA番号/B番号へ写像し、その番号をA/B箱から抜く。
   let usedC=new Set();
   for(let t of splitDraws){
    let nums=sh([...Array(28)].map((_,i)=>i+1)).filter(n=>!usedC.has(n));
@@ -111,12 +131,16 @@ function makeDraw(){
     let s=t.drawSide=='A'?c:c+28;
     let p=initialPairs().find(([a,b])=>a==s||b==s);
     let ok=true;
-    if(p){let o=p[0]==s?p[1]:p[0];ok=!slots[o]||slots[o].origRegion!=t.origRegion}
+    if(p){
+     let o=p[0]==s?p[1]:p[0];
+     ok=!slots[o]||slots[o].origRegion!=t.origRegion;
+    }
     if(ok){chosen={c,slot:s};break}
    }
    if(!chosen){bad=true;break}
    usedC.add(chosen.c);
-   let pool=pools[t.drawSide],idx=pool.indexOf(chosen.slot);if(idx>=0)pool.splice(idx,1);
+   let pool=pools[t.drawSide],idx=pool.indexOf(chosen.slot);
+   if(idx>=0)pool.splice(idx,1);
    slots[chosen.slot]={...t,slot:chosen.slot,cNo:chosen.c};
    placements.push({...t,slot:chosen.slot,cNo:chosen.c,phase:'split'});
   }
@@ -137,8 +161,11 @@ function makeDraw(){
   }
   if(bad)continue;
 
-  let c=0;initialPairs().forEach(([a,b])=>{if(slots[a].origRegion==slots[b].origRegion)c++});
-  if(Object.keys(slots).length==56&&c==0)return{teams,groups,hkTarget,rawOrder,order,alloc,split,slots,placements,sideDraw:{}};
+  let c=0;
+  initialPairs().forEach(([a,b])=>{if(slots[a].origRegion==slots[b].origRegion)c++});
+  if(Object.keys(slots).length==56&&c==0){
+   return{teams,groups,hkTarget,rawOrder,order,alloc,split,splitInfo,slots,placements,sideDraw:{}};
+  }
  }
  throw Error('draw failed');
 }
@@ -174,23 +201,37 @@ function buildSteps(){
  steps.push({title:'地区順確定・関東東京/九州の順番調整',body:`確定地区順：${d.order.join(' → ')}`,kind:'order'});
 
  d.alloc.forEach((r,i)=>{
-   steps.push({title:`A/B振分 ${i+1}：${r.region}`,body:r.split?`${r.region} が分割地区に決定。地区内でA/B振分くじを行います。`:`${r.region} は ${r.side}。${r.n}校を振分。残り A=${r.after.A} / B=${r.after.B}`,kind:'alloc',alloc:r});
-   if(r.split){
-     let rows=(r.splitRows||[]).slice().sort((a,b)=>a.pre-b.pre);
-     rows.forEach((t,j)=>{
-       steps.push({
-        title:`分割地区A/B振分 ${j+1}：予備抽選${t.pre}番 ${t.pref}`,
-        body:`${t.name}（${t.pref}）が ${t.cTicket} を引きました。`,
-        kind:'splitTicket',
-        splitTeam:t,
-        splitRegion:r.region,
-        splitRows:rows
-       });
-     });
+   let body=`${r.region} は ${r.side}。${r.n}校を振分。残り A=${r.after.A} / B=${r.after.B}`;
+   if(r.trigger){
+     body+=`。${r.side}側が締切を超えたため、残り地区は${r.side=='A'?'B':'A'}側へ回します。`;
    }
+   if(r.forced){
+     body=`${r.region} は ${r.side}側へ自動決定。残り A=${r.after.A} / B=${r.after.B}`;
+   }
+   steps.push({title:`A/B振分 ${i+1}：${r.region}`,body,kind:'alloc',alloc:r});
  });
 
- steps.push({title:'分割地区の発生判定',body:`分割地区：${d.split.join('・')||'なし'}。分割地区がある場合は、先にC箱で本抽選します。`,kind:'order'});
+ if(d.splitInfo){
+   steps.push({
+    title:`分割地区決定：${d.splitInfo.region}`,
+    body:`${d.splitInfo.triggerRegion}で${d.splitInfo.overSide}側が締切を超えたため、${d.splitInfo.overSide}側に入った地区のうち地区順が一番若い ${d.splitInfo.region} を分割地区にします。A${d.splitInfo.aNeed}枚 / B${d.splitInfo.bNeed}枚で地区内A/B振分くじを行います。`,
+    kind:'splitDecision',
+    splitInfo:d.splitInfo
+   });
+   let rows=d.splitInfo.splitRows.slice().sort((a,b)=>a.pre-b.pre);
+   rows.forEach((t,j)=>{
+     steps.push({
+      title:`分割地区A/B振分 ${j+1}：予備抽選${t.pre}番 ${t.pref}`,
+      body:`${t.name}（${t.pref}）が ${t.cTicket} を引きました。`,
+      kind:'splitTicket',
+      splitTeam:t,
+      splitInfo:d.splitInfo,
+      splitRows:rows
+     });
+   });
+ }else{
+   steps.push({title:'分割地区の発生判定',body:'分割地区：なし。',kind:'order'});
+ }
 
  let splitPlacements=d.placements.filter(p=>p.phase==='split');
  let normalPlacements=d.placements.filter(p=>p.phase!=='split');
@@ -233,8 +274,8 @@ function renderBracket(){bracket.innerHTML='<div class="note"><span class="pill"
 function miniTeams(){return`<div class="miniTable"><table><tr><th>代表</th><th>高校名</th><th>地区</th></tr>${current.teams.slice().sort((a,b)=>a.pref.localeCompare(b.pref,'ja')).map(t=>`<tr><td>${esc(t.pref)}</td><td>${esc(t.name)}</td><td>${esc(t.origRegion)}</td></tr>`).join('')}</table></div>`}function miniPre(){return`<div class="miniTable"><table><tr><th>予備</th><th>高校名</th><th>代表</th><th>地区</th></tr>${current.teams.slice().sort((a,b)=>a.pre-b.pre).map(t=>`<tr><td>${t.pre}</td><td>${esc(t.name)}</td><td>${esc(t.pref)}</td><td>${esc(t.origRegion)}</td></tr>`).join('')}</table></div>`}function miniOrder(){return`<div class="miniTable"><table><tr><th>順</th><th>地区</th><th>校数</th></tr>${current.order.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r)}</td><td>${current.groups[r]?.length||''}</td></tr>`).join('')}</table></div>`}function miniSplitRows(rows,now){
  return `<div class="miniTable"><table><tr><th>予備</th><th>高校名</th><th>代表</th><th>A/Bくじ</th></tr>${(rows||[]).map(t=>`<tr class="${now&&now.pre==t.pre?'sideFixed':''}"><td>${t.pre}</td><td>${esc(t.name)}</td><td>${esc(t.pref)}</td><td>${esc(t.cTicket||'未抽選')}</td></tr>`).join('')}</table></div>`;
 }
-function extra(st){if(st.kind=='teams')return miniTeams();if(st.kind=='pre')return miniPre();if(st.kind=='splitTicket')return miniSplitRows(st.splitRows,st.splitTeam);if(st.kind=='order'||st.kind=='alloc'||st.kind=='side')return miniOrder();if(st.kind=='place')return`<div class="cards"><div class="card nowCard"><b>${slotCode(st.place.slot)}</b><br>${esc(st.place.name)}<br><span class="small">${esc(st.place.pref)}／予備${st.place.pre}番${st.place.cNo?'／C'+st.place.cNo:''}</span></div></div>`;if(st.kind=='alloc')return'';return''}
-function result(st){if(st.kind=='splitTicket')return`<div class="cards"><div class="card nowCard"><b>${esc(st.splitTeam.name)}</b><br>${esc(st.splitTeam.pref)}／予備${st.splitTeam.pre}番 → ${esc(st.splitTeam.cTicket)}</div></div>`;if(st.kind=='alloc'){
+function extra(st){if(st.kind=='teams')return miniTeams();if(st.kind=='pre')return miniPre();if(st.kind=='splitDecision')return miniSplitRows(st.splitInfo.splitRows,null);if(st.kind=='splitTicket')return miniSplitRows(st.splitRows,st.splitTeam);if(st.kind=='order'||st.kind=='alloc'||st.kind=='side')return miniOrder();if(st.kind=='place')return`<div class="cards"><div class="card nowCard"><b>${slotCode(st.place.slot)}</b><br>${esc(st.place.name)}<br><span class="small">${esc(st.place.pref)}／予備${st.place.pre}番${st.place.cNo?'／C'+st.place.cNo:''}</span></div></div>`;if(st.kind=='alloc')return'';return''}
+function result(st){if(st.kind=='splitDecision')return`<div class="cards"><div class="card nowCard"><b>${esc(st.splitInfo.region)}</b><br>分割地区に決定</div><div class="card"><b>A/B個別くじ</b><br>A ${st.splitInfo.aNeed}枚 / B ${st.splitInfo.bNeed}枚</div></div>`;if(st.kind=='splitTicket')return`<div class="cards"><div class="card nowCard"><b>${esc(st.splitTeam.name)}</b><br>${esc(st.splitTeam.pref)}／予備${st.splitTeam.pre}番 → ${esc(st.splitTeam.cTicket)}</div></div>`;if(st.kind=='alloc'){
  if(st.alloc.split)return `<div class="cards"><div class="card nowCard"><b>${esc(st.alloc.region)}</b><br>分割地区に決定</div><div class="card"><b>A/B個別くじ</b><br>A ${st.alloc.aNeed}枚 / B ${st.alloc.bNeed}枚</div></div>`;
  return `<div class="cards"><div class="card nowCard"><b>${esc(st.alloc.region)}</b><br>${esc(st.alloc.side)}側へ ${st.alloc.n}校</div><div class="card"><b>振分前</b><br>A ${st.alloc.before.A} / B ${st.alloc.before.B}</div><div class="card"><b>振分後</b><br>A ${st.alloc.after.A} / B ${st.alloc.after.B}</div></div>`;
 }if(st.kind=='side'&&current.sideDraw[st.gameNo]){let a=current.sideDraw[st.gameNo];return`<div class="cards"><div class="card nowCard"><b>試合${st.gameNo}</b><br>1塁側：${srcLabel(a[0])}<br>3塁側：${srcLabel(a[1])}</div></div>`}return''}
