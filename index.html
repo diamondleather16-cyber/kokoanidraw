@@ -5,6 +5,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}header{background:var(--ink);color:white;padding:14px 16px}header h2{margin:0 0 6px}main{max-width:1700px;margin:auto;padding:12px}section{background:var(--card);border-radius:12px;padding:12px;margin:10px 0;box-shadow:0 1px 3px #0001}button{border:0;border-radius:8px;background:var(--ink);color:white;font-weight:700;padding:9px 12px;margin:3px;cursor:pointer}.secondary{background:#475569}.light{background:#e5e7eb;color:#111827}.danger{background:#b91c1c}.ok{color:#047857;font-weight:700}.warn{color:#b91c1c;font-weight:700}.small{font-size:12px;color:var(--muted)}.grid{display:grid;grid-template-columns:380px 1fr;gap:12px}.sticky{position:sticky;top:10px}.ctrl{display:flex;gap:6px;flex-wrap:wrap}.tabs button{margin:2px}.hide{display:none}.note{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:8px;font-size:12px;line-height:1.55;color:#334155}.phaseBox{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.bigStep{font-size:18px;font-weight:800;margin:8px 0}.bar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:6px 0}.bar span{display:block;height:100%;background:#111827}.miniTable{max-height:330px;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;margin:8px 0}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ddd;padding:5px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin:8px 0}.card{border:1px solid #e5e7eb;border-radius:8px;padding:8px;background:#fff}.card b{color:#1e40af}.nowCard{border:2px solid #fb923c;background:var(--now)}.stepItem{padding:8px;border-left:5px solid #cbd5e1;margin:6px 0;background:#f8fafc;border-radius:8px}.stepItem.active{border-left-color:#111827;background:#eef2ff}.stepItem.done{border-left-color:#047857;background:#ecfdf5}.stepItem.todo{opacity:.65}
 .bracket{overflow:auto}.blocks{display:grid;grid-template-columns:1fr;gap:16px;min-width:0}.block{border:1px solid var(--line);border-radius:12px;background:#fff;overflow-x:auto}.bt{background:#111827;color:white;padding:8px 10px;display:flex;justify-content:space-between;font-weight:800}.tree{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr) minmax(180px,.8fr);gap:8px;padding:8px;min-width:720px;align-items:center}.col{display:flex;flex-direction:column;gap:10px}.game{border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden}.gl{font-size:12px;font-weight:800;padding:4px 6px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.r1 .gl{background:var(--r1)}.r2 .gl{background:var(--r2)}.r3 .gl{background:var(--r3)}.qf .gl{background:var(--qf)}.sf .gl{background:var(--sf)}.final .gl{background:var(--final)}.team{min-height:34px;display:grid;grid-template-columns:48px minmax(0,1fr) 42px;gap:6px;align-items:center;padding:4px 6px;border-bottom:1px solid #e5e7eb}.team:last-child{border-bottom:0}.slotA{border-left:5px solid var(--a)}.slotB{border-left:5px solid var(--b)}.tn{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pref{font-size:10px;color:var(--muted)}.src{font-size:11px;color:var(--muted)}.pendingName{color:#94a3b8;font-weight:700}.pick{font-size:11px;padding:5px 7px;background:#e5e7eb;color:#111827}.picked{background:#047857!important;color:white!important}.winrow{background:var(--win)}.meta{padding:4px 6px;border-bottom:1px solid #e5e7eb;background:#f8fafc;display:flex;gap:5px;flex-wrap:wrap;align-items:center}.date{width:132px}.score{width:54px;text-align:center}.noteInput{width:120px}input{border:1px solid var(--line);border-radius:6px;padding:5px;font-size:12px}.highlightSlot{box-shadow:0 0 0 3px #fb923c inset!important}.pill{display:inline-block;border-radius:999px;padding:2px 8px;margin:2px;background:#e5e7eb;font-size:12px}.Arow{background:#dbeafe}.Brow{background:#fee2e2}
 @media(max-width:980px){.grid{grid-template-columns:1fr}.sticky{position:static}.tree{min-width:660px}}@media(max-width:700px){header h2{font-size:18px}main{padding:6px}section{padding:8px}.team{grid-template-columns:42px minmax(0,1fr) 38px}.date{width:100%}.noteInput{width:100%}}
+.sideFixed{background:#fff7ed;font-weight:700}
 </style></head><body><header><h2>高校野球 記念大会56代表 地区ブロック抽選・大会進行表</h2><div class="small">代表校確定 → 予備抽選 → 北海道組込 → 地区順 → A/B振分 → 分割地区 → 本抽選 → 1塁側/3塁側抽選</div></header><main><div class="grid"><div><section class="sticky"><div class="ctrl"><button onclick="newDraw()">新しい抽選を作成</button><button class="secondary" onclick="stats()">1000回検証</button><button class="light" onclick="saveState()">進行保存</button><button class="light" onclick="loadState();renderAll()">進行読込</button><button class="danger" onclick="clearState()">進行初期化</button></div><div id="summary" style="margin-top:8px"></div></section><section><h3>表示</h3><div class="tabs"><button onclick="showTab('lottery')">抽選フェーズ</button><button class="secondary" onclick="showTab('bracket')">3回戦まで</button><button class="secondary" onclick="showTab('finals')">準々決勝以降</button><button class="secondary" onclick="showTab('names')">高校名変更</button><button class="secondary" onclick="showTab('list')">配置一覧</button></div><p class="small">通常大会版に寄せた表示。手順ごとに一覧・残数・結果カードを出します。</p></section></div><div>
 <section id="tab-lottery"><h3>抽選フェーズ</h3><div class="note">最初は空欄。次へで1手順ずつ進み、該当枠だけがトーナメントに現れます。</div><div class="ctrl"><button onclick="prevStep()">戻る</button><button onclick="nextStep()">次へ</button><button class="light" onclick="resetSteps()">最初へ</button><button class="light" onclick="finishSteps()">最後まで</button></div><div id="lotteryWalk" class="phaseBox"></div></section>
 <section id="tab-bracket" class="hide"><h3>3回戦まで</h3><div id="bracket" class="bracket"></div></section>
@@ -164,15 +165,60 @@ function adjustOrder(raw){
  return [...head,...missing,...displaced,...work.slice(4)];
 }
 function newDraw(){current=makeDraw();state={games:{},qf:null,sf:null};stepIndex=0;renderAll();showTab('lottery')}
-function buildSteps(){let d=current,steps=[];steps.push({title:'代表校がすべてそろう',body:'56代表校が確定した状態。トーナメント枠はまだ空です。',kind:'teams'});steps.push({title:'予備抽選番号がふられる',body:'56校に予備抽選番号1〜56を付与。以後はこの若い番号順を基準に処理します。',kind:'pre'});steps.push({title:'北海道2代表の組み込み抽選',body:`北海道2代表を2校1組で ${d.hkTarget} に仮編入します。`,kind:'pre'});steps.push({title:'地区順を決める抽選',body:`素の地区順：${d.rawOrder.join(' → ')}`,kind:'order'});steps.push({title:'地区順確定・関東東京/九州の順番調整',body:`確定地区順：${d.order.join(' → ')}`,kind:'order'});d.alloc.forEach((r,i)=>steps.push({title:`A/B振分 ${i+1}：${r.region}`,body:`${r.region} は ${r.side}。${r.n}校を振分。残り A=${r.after.A} / B=${r.after.B}`,kind:'alloc',alloc:r}));steps.push({title:'分割地区の発生判定',body:`分割地区：${d.split.join('・')||'なし'}`,kind:'order'});d.placements.forEach((p,i)=>{
- let body=p.phase==='split'
-   ? `${p.name}（${p.pref}） → C${p.cNo} → ${slotCode(p.slot)}`
-   : `${p.name}（${p.pref}） → ${slotCode(p.slot)}`;
- let title=p.phase==='split'
-   ? `分割地区C箱本抽選 ${i+1}：予備抽選${p.pre}番`
-   : `本抽選 ${i+1}：予備抽選${p.pre}番`;
- steps.push({title,body,kind:'place',place:p});
-});steps.push({title:'A/B本抽選完了・1塁側/3塁側抽選へ',body:'56枠の本抽選が完了しました。続いて初戦カードごとに1塁側・3塁側を抽選します。',kind:'sideStart'});initialPairs().map(p=>p[2]).sort((a,b)=>a-b).forEach(no=>steps.push({title:`1塁側/3塁側抽選：試合${no}`,body:`試合${no}の1塁側・3塁側を抽選します。`,kind:'side',gameNo:no}));steps.push({title:'抽選完了',body:'配置と1塁側・3塁側抽選が完了しました。',kind:'done'});return steps}
+function buildSteps(){
+ let d=current,steps=[];
+ steps.push({title:'代表校がすべてそろう',body:'56代表校が確定した状態。トーナメント枠はまだ空です。',kind:'teams'});
+ steps.push({title:'予備抽選番号がふられる',body:'56校に予備抽選番号1〜56を付与。以後はこの若い番号順を基準に処理します。',kind:'pre'});
+ steps.push({title:'北海道2代表の組み込み抽選',body:`北海道2代表を2校1組で ${d.hkTarget} に仮編入します。`,kind:'pre'});
+ steps.push({title:'地区順を決める抽選',body:`素の地区順：${d.rawOrder.join(' → ')}`,kind:'order'});
+ steps.push({title:'地区順確定・関東東京/九州の順番調整',body:`確定地区順：${d.order.join(' → ')}`,kind:'order'});
+
+ d.alloc.forEach((r,i)=>{
+   steps.push({title:`A/B振分 ${i+1}：${r.region}`,body:r.split?`${r.region} が分割地区に決定。地区内でA/B振分くじを行います。`:`${r.region} は ${r.side}。${r.n}校を振分。残り A=${r.after.A} / B=${r.after.B}`,kind:'alloc',alloc:r});
+   if(r.split){
+     let rows=(r.splitRows||[]).slice().sort((a,b)=>a.pre-b.pre);
+     rows.forEach((t,j)=>{
+       steps.push({
+        title:`分割地区A/B振分 ${j+1}：予備抽選${t.pre}番 ${t.pref}`,
+        body:`${t.name}（${t.pref}）が ${t.cTicket} を引きました。`,
+        kind:'splitTicket',
+        splitTeam:t,
+        splitRegion:r.region,
+        splitRows:rows
+       });
+     });
+   }
+ });
+
+ steps.push({title:'分割地区の発生判定',body:`分割地区：${d.split.join('・')||'なし'}。分割地区がある場合は、先にC箱で本抽選します。`,kind:'order'});
+
+ let splitPlacements=d.placements.filter(p=>p.phase==='split');
+ let normalPlacements=d.placements.filter(p=>p.phase!=='split');
+
+ splitPlacements.forEach((p,i)=>{
+   steps.push({
+    title:`分割地区C箱本抽選 ${i+1}：予備抽選${p.pre}番`,
+    body:`${p.name}（${p.pref}） → C${p.cNo} → ${slotCode(p.slot)}`,
+    kind:'place',
+    place:p,
+    cbox:true
+   });
+ });
+
+ normalPlacements.forEach((p,i)=>{
+   steps.push({
+    title:`本抽選 ${i+1}：予備抽選${p.pre}番`,
+    body:`${p.name}（${p.pref}） → ${slotCode(p.slot)}`,
+    kind:'place',
+    place:p
+   });
+ });
+
+ steps.push({title:'A/B本抽選完了・1塁側/3塁側抽選へ',body:'56枠の本抽選が完了しました。続いて初戦カードごとに1塁側・3塁側を抽選します。',kind:'sideStart'});
+ initialPairs().map(p=>p[2]).sort((a,b)=>a-b).forEach(no=>steps.push({title:`1塁側/3塁側抽選：試合${no}`,body:`試合${no}の1塁側・3塁側を抽選します。`,kind:'side',gameNo:no}));
+ steps.push({title:'抽選完了',body:'配置と1塁側・3塁側抽選が完了しました。',kind:'done'});
+ return steps
+}
 function visibleSlots(){let o={},steps=buildSteps();for(let i=0;i<=stepIndex;i++){let s=steps[i];if(s.place)o[s.place.slot]=true;if(s.kind=='sideStart'||s.kind=='side'||s.kind=='done'){current.placements.forEach(p=>o[p.slot]=true)}}return o}
 function sideVisible(){let o={},steps=buildSteps();for(let i=0;i<=stepIndex;i++){let s=steps[i];if(s.gameNo){if(!current.sideDraw[s.gameNo])current.sideDraw[s.gameNo]=sh(sourceForGame(s.gameNo));o[s.gameNo]=true}if(s.kind=='done')initialPairs().forEach(p=>o[p[2]]=true)}return o}
 function nextStep(){let st=buildSteps();stepIndex=Math.min(stepIndex+1,st.length-1);renderAll()}function prevStep(){stepIndex=Math.max(0,stepIndex-1);renderAll()}function resetSteps(){stepIndex=0;current.sideDraw={};renderAll()}function finishSteps(){stepIndex=buildSteps().length-1;initialPairs().forEach(p=>{if(!current.sideDraw[p[2]])current.sideDraw[p[2]]=sh(sourceForGame(p[2]))});renderAll()}
@@ -181,12 +227,14 @@ function srcLabel(s){return s.slot?slotCode(s.slot):'試合'+s.game+'勝者'}fun
 function resolve(src){if(src.raw)return src.team||null;if(src.slot)return current.slots[src.slot]||null;return state.games[src.game]?.winner||null}function entrants(no){let arr=(no<=40&&current.sideDraw[no])?current.sideDraw[no]:sourceForGame(no);return arr.map((s,i)=>({team:resolve(s),label:(current.sideDraw[no]&&no<=40?(i==0?'1塁側 ':'3塁側 '):'')+(s.label||srcLabel(s))}))}
 function gstate(n){state.games[n]??={};return state.games[n]}function clone(t){return t?{name:t.name,pref:t.pref,origRegion:t.origRegion,region:t.region,slot:t.slot}:null}function setWinner(no,idx){let e=entrants(no)[idx];if(!e.team){alert('勝者未確定です');return}let g=gstate(no);g.winner=clone(e.team);g.winnerIndex=idx;if(no>=41&&no<=48)assignQFForGame(no);if(no>=49&&no<=52)assignSFForGame(no);saveInputs();renderAll()}
 function row(no,e,idx,progress){let t=e.team,g=gstate(no),picked=g.winnerIndex==idx;return`<div class="team ${idx?'slotB':'slotA'} ${picked?'winrow':''}"><span class="src">${esc(e.label||'')}</span><span>${t?`<span class="tn">${esc(t.name)}</span> <span class="pref">(${esc(t.pref)})</span>`:`<span class="pendingName">抽選待ち</span>`}</span>${progress?`<button class="pick ${picked?'picked':''}" onclick="setWinner(${no},${idx})">勝</button>`:'<span></span>'}</div>`}
-function game(no,title,cls,progress=true,vis=null,sidevis=null,hi=null){let g=gstate(no),src=(no<=40&&sidevis&&sidevis[no]&&current.sideDraw[no])?current.sideDraw[no]:sourceForGame(no),es=src.map((s,i)=>{let t=s.slot?(vis&&vis[s.slot]?current.slots[s.slot]:null):resolve(s);return{team:t,label:(sidevis&&sidevis[no]&&no<=40?(i==0?'1塁側 ':'3塁側 '):'')+(s.label||srcLabel(s))}});let h=(src[0]?.slot==hi||src[1]?.slot==hi)?' highlightSlot':'';let meta=progress?`<div class="meta"><input class="date" data-date="${no}" placeholder="8/6 10:00" value="${esc(g.date||'')}" onchange="saveInputs()"><span>スコア</span><input class="score" data-score="${no}" data-idx="0" value="${esc(g.score0||'')}" onchange="saveInputs()"> - <input class="score" data-score="${no}" data-idx="1" value="${esc(g.score1||'')}" onchange="saveInputs()"><input class="noteInput" data-note="${no}" placeholder="延長12回TB等" value="${esc(g.note||'')}" onchange="saveInputs()"></div>`:'';return`<div class="game ${cls}${h}"><div class="gl"><span>試合${no}</span><span>${title}</span></div>${meta}${row(no,es[0]||{},0,progress)}${row(no,es[1]||{},1,progress)}</div>`}
+function game(no,title,cls,progress=true,vis=null,sidevis=null,hi=null){let g=gstate(no),src=(no<=40&&sidevis&&sidevis[no]&&current.sideDraw[no])?current.sideDraw[no]:sourceForGame(no),es=src.map((s,i)=>{let t=s.slot?((vis?vis[s.slot]:true)?current.slots[s.slot]:null):resolve(s);return{team:t,label:(sidevis&&sidevis[no]&&no<=40?(i==0?'1塁側 ':'3塁側 '):'')+(s.label||srcLabel(s))}});let h=(src[0]?.slot==hi||src[1]?.slot==hi)?' highlightSlot':'';let meta=progress?`<div class="meta"><input class="date" data-date="${no}" placeholder="8/6 10:00" value="${esc(g.date||'')}" onchange="saveInputs()"><span>スコア</span><input class="score" data-score="${no}" data-idx="0" value="${esc(g.score0||'')}" onchange="saveInputs()"> - <input class="score" data-score="${no}" data-idx="1" value="${esc(g.score1||'')}" onchange="saveInputs()"><input class="noteInput" data-note="${no}" placeholder="延長12回TB等" value="${esc(g.note||'')}" onchange="saveInputs()"></div>`:'';return`<div class="game ${cls}${h}"><div class="gl"><span>試合${no}</span><span>${title}</span></div>${meta}${row(no,es[0]||{},0,progress)}${row(no,es[1]||{},1,progress)}</div>`}
 function blockHTML(bl,progress=true,vis=null,sidevis=null,hi=null){let gf=(n,t,c)=>game(n,t,c,progress,vis,sidevis,hi),left='',mid='';if(bl.no<=2){mid=gf(bl.r2[0],'2回戦','r2')+gf(bl.r2[1],'2回戦','r2')}else{left=bl.r1.map(n=>gf(n,'1回戦','r1')).join('');mid=gf(bl.r2[0],'2回戦','r2')+gf(bl.r2[1],'2回戦','r2')}return`<div class="block"><div class="bt"><span>第${bl.no}ブロック</span><span>${bl.no<=2?'2回戦スタート':'1回戦スタート'}</span></div><div class="tree"><div class="col">${left}</div><div class="col">${mid}</div><div class="col">${gf(bl.r3,'3回戦','r3')}</div></div></div>`}
 function renderBracket(){bracket.innerHTML='<div class="note"><span class="pill" style="background:var(--r1)">1回戦1〜24</span><span class="pill" style="background:var(--r2)">2回戦25〜40</span><span class="pill" style="background:var(--r3)">3回戦41〜48</span></div><div class="blocks">'+blocks.map(b=>blockHTML(b,true,null,null)).join('')+'</div>'}
-function miniTeams(){return`<div class="miniTable"><table><tr><th>代表</th><th>高校名</th><th>地区</th></tr>${current.teams.slice().sort((a,b)=>a.pref.localeCompare(b.pref,'ja')).map(t=>`<tr><td>${esc(t.pref)}</td><td>${esc(t.name)}</td><td>${esc(t.origRegion)}</td></tr>`).join('')}</table></div>`}function miniPre(){return`<div class="miniTable"><table><tr><th>予備</th><th>高校名</th><th>代表</th><th>地区</th></tr>${current.teams.slice().sort((a,b)=>a.pre-b.pre).map(t=>`<tr><td>${t.pre}</td><td>${esc(t.name)}</td><td>${esc(t.pref)}</td><td>${esc(t.origRegion)}</td></tr>`).join('')}</table></div>`}function miniOrder(){return`<div class="miniTable"><table><tr><th>順</th><th>地区</th><th>校数</th></tr>${current.order.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r)}</td><td>${current.groups[r]?.length||''}</td></tr>`).join('')}</table></div>`}
-function extra(st){if(st.kind=='teams')return miniTeams();if(st.kind=='pre')return miniPre();if(st.kind=='order'||st.kind=='alloc'||st.kind=='side')return miniOrder();if(st.kind=='place')return`<div class="cards"><div class="card nowCard"><b>${slotCode(st.place.slot)}</b><br>${esc(st.place.name)}<br><span class="small">${esc(st.place.pref)}／予備${st.place.pre}番${st.place.cNo?'／C'+st.place.cNo:''}</span></div></div>`;if(st.kind=='alloc')return'';return''}
-function result(st){if(st.kind=='alloc'){
+function miniTeams(){return`<div class="miniTable"><table><tr><th>代表</th><th>高校名</th><th>地区</th></tr>${current.teams.slice().sort((a,b)=>a.pref.localeCompare(b.pref,'ja')).map(t=>`<tr><td>${esc(t.pref)}</td><td>${esc(t.name)}</td><td>${esc(t.origRegion)}</td></tr>`).join('')}</table></div>`}function miniPre(){return`<div class="miniTable"><table><tr><th>予備</th><th>高校名</th><th>代表</th><th>地区</th></tr>${current.teams.slice().sort((a,b)=>a.pre-b.pre).map(t=>`<tr><td>${t.pre}</td><td>${esc(t.name)}</td><td>${esc(t.pref)}</td><td>${esc(t.origRegion)}</td></tr>`).join('')}</table></div>`}function miniOrder(){return`<div class="miniTable"><table><tr><th>順</th><th>地区</th><th>校数</th></tr>${current.order.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r)}</td><td>${current.groups[r]?.length||''}</td></tr>`).join('')}</table></div>`}function miniSplitRows(rows,now){
+ return `<div class="miniTable"><table><tr><th>予備</th><th>高校名</th><th>代表</th><th>A/Bくじ</th></tr>${(rows||[]).map(t=>`<tr class="${now&&now.pre==t.pre?'sideFixed':''}"><td>${t.pre}</td><td>${esc(t.name)}</td><td>${esc(t.pref)}</td><td>${esc(t.cTicket||'未抽選')}</td></tr>`).join('')}</table></div>`;
+}
+function extra(st){if(st.kind=='teams')return miniTeams();if(st.kind=='pre')return miniPre();if(st.kind=='splitTicket')return miniSplitRows(st.splitRows,st.splitTeam);if(st.kind=='order'||st.kind=='alloc'||st.kind=='side')return miniOrder();if(st.kind=='place')return`<div class="cards"><div class="card nowCard"><b>${slotCode(st.place.slot)}</b><br>${esc(st.place.name)}<br><span class="small">${esc(st.place.pref)}／予備${st.place.pre}番${st.place.cNo?'／C'+st.place.cNo:''}</span></div></div>`;if(st.kind=='alloc')return'';return''}
+function result(st){if(st.kind=='splitTicket')return`<div class="cards"><div class="card nowCard"><b>${esc(st.splitTeam.name)}</b><br>${esc(st.splitTeam.pref)}／予備${st.splitTeam.pre}番 → ${esc(st.splitTeam.cTicket)}</div></div>`;if(st.kind=='alloc'){
  if(st.alloc.split)return `<div class="cards"><div class="card nowCard"><b>${esc(st.alloc.region)}</b><br>分割地区に決定</div><div class="card"><b>A/B個別くじ</b><br>A ${st.alloc.aNeed}枚 / B ${st.alloc.bNeed}枚</div></div>`;
  return `<div class="cards"><div class="card nowCard"><b>${esc(st.alloc.region)}</b><br>${esc(st.alloc.side)}側へ ${st.alloc.n}校</div><div class="card"><b>振分前</b><br>A ${st.alloc.before.A} / B ${st.alloc.before.B}</div><div class="card"><b>振分後</b><br>A ${st.alloc.after.A} / B ${st.alloc.after.B}</div></div>`;
 }if(st.kind=='side'&&current.sideDraw[st.gameNo]){let a=current.sideDraw[st.gameNo];return`<div class="cards"><div class="card nowCard"><b>試合${st.gameNo}</b><br>1塁側：${srcLabel(a[0])}<br>3塁側：${srcLabel(a[1])}</div></div>`}return''}
